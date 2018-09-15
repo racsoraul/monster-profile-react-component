@@ -1,6 +1,7 @@
 import React, { Fragment, Component } from 'react'
 import { render } from 'react-dom'
-import monster3D from './assets/models/Tucan.gltf'
+// import monster3D from './assets/models/Tucan.gltf'
+import spriteSheet from './assets/images/T_PlasmaExplosion_8k.png'
 import { Monster3DProfile, ActionType } from '../../src'
 
 class App extends Component {
@@ -22,7 +23,7 @@ class App extends Component {
         <Monster3DProfile
           typeId={5454543545454}
           action={this.state.currentAnimation}
-          path={monster3D}
+          path={spriteSheet}
           position={{ y: -60 }}
           size={{ height: "600px" }}
           background={{ alpha: 1 }}

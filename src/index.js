@@ -2,10 +2,47 @@ import React, { Component } from 'react'
 import PropTypes from 'prop-types'
 import { ActionType } from './utils/enums'
 import * as THREE from 'three'
-import GLTFLoader from './utils/GLTFLoader'
 import OrbitControls from './utils/OrbitControls'
 import injectSheet from 'react-jss'
 import styles from './styles'
+
+function TileTextureAnimator(texture, hTiles, vTiles, durationTile) {
+
+  // current tile number
+  this.currentTile = 0;
+
+  // duration of every tile
+  this.durationTile = durationTile;
+
+  // internal time counter
+  this.currentTime = 0;
+
+  // amount of horizontal and vertical tiles, and total count of tiles
+  this.hTiles = hTiles;
+  this.vTiles = vTiles;
+  this.cntTiles = this.hTiles * this.vTiles;
+
+  texture.wrapS = texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(1 / this.hTiles, 1 / this.vTiles);
+
+  this.update = function (time) {
+    this.currentTime += time;
+
+    while (this.currentTime > this.durationTile) {
+      this.currentTime -= this.durationTile;
+      this.currentTile++;
+
+      if (this.currentTile == this.cntTiles) {
+        this.currentTile = 0;
+      }
+
+      var iColumn = this.currentTile % this.hTiles;
+      texture.offset.x = iColumn / this.hTiles;
+      var iRow = Math.floor(this.currentTile / this.hTiles);
+      texture.offset.y = iRow / this.vTiles;
+    }
+  };
+}
 
 class Monster3DProfile extends Component {
   constructor(props) {
@@ -36,6 +73,9 @@ class Monster3DProfile extends Component {
     // add scene
     this.scene = new THREE.Scene()
 
+    var axesHelper = new THREE.AxesHelper(50);
+    this.scene.add(axesHelper);
+
     // add camera
     this.camera = new THREE.PerspectiveCamera(70, width / height, 0.25, 1000)
     this.camera.updateProjectionMatrix()
@@ -44,7 +84,8 @@ class Monster3DProfile extends Component {
     this.controls = new OrbitControls(this.camera, this.mount)
     this.controls.target.set(0, 0, 0)
     this.controls.screenSpacePanning = true
-    this.controls.enableZoom = zoom
+    //this.controls.enableZoom = zoom
+    this.controls.enableZoom = true
     this.controls.update()
 
     // add renderer
@@ -74,17 +115,50 @@ class Monster3DProfile extends Component {
     this.scene.add(this.camera)
 
     // loading monster with GLTF loader
-    const gltfLoader = new GLTFLoader()
-    gltfLoader.load(
+    // const gltfLoader = new GLTFLoader()
+    // gltfLoader.load(
+    //   path,
+    //   this.loadMonster,
+    //   // TODO: add a loader.
+    //   event => {
+    //     const percentage = (event.loaded / event.total) * 100
+    //     console.log(`Loading 3D model... ${Math.round(percentage)}%`)
+    //   },
+    //   console.error.bind(console)
+    // )
+
+    this.camera.far = 500
+    this.camera.near = 0.1
+
+    var texture = new THREE.TextureLoader()
+    texture.load(
+      // resource URL
       path,
-      this.loadMonster,
-      // TODO: add a loader.
-      event => {
-        const percentage = (event.loaded / event.total) * 100
-        console.log(`Loading 3D model... ${Math.round(percentage)}%`)
+
+      // onLoad callback
+      (texture) => {
+        console.log(texture);
+        this.anim1 = new TileTextureAnimator(texture, 8, 8, 64);
+        console.log(this.anim1);
+        var material1 = new THREE.SpriteMaterial({ map: texture, useScreenCoordinates: false, side: THREE.DoubleSide, transparent: true });
+        var mesh1 = new THREE.Sprite(material1);
+        mesh1.position.set(0, 0, 0);
+        mesh1.scale.set(5, 5, 1.0);
+        this.scene.add(mesh1);
+        this.animReady1 = true
       },
-      console.error.bind(console)
-    )
+
+      // onProgress callback currently not supported
+      undefined,
+
+      // onError callback
+      function (err) {
+        console.error('An error happened.');
+      }
+    );
+
+
+    this.camera.position.z += 5
 
     // start scene
     this.start()
@@ -95,10 +169,9 @@ class Monster3DProfile extends Component {
     this.monster = this.model.scene.children[0]
 
     const { rotation, action, position } = this.props
-    const defaultRotation = { x: 0, y: 0, z: 0 }
-    const monsterRotation = { ...defaultRotation, ...rotation }
-    const defaultPosition = { x: 0, y: 0, z: 0 }
-    const monsterPosition = { ...defaultPosition, ...position }
+    const defaultValues = { x: 0, y: 0, z: 0 }
+    const monsterRotation = { ...defaultValues, ...rotation }
+    const monsterPosition = { ...defaultValues, ...position }
 
     this.monster.updateMatrixWorld()
 
@@ -136,7 +209,7 @@ class Monster3DProfile extends Component {
     this.camera.position.y += size
     this.camera.position.z += size
     this.camera.updateProjectionMatrix()
-    
+
     // backup camera to restore it later
     this.backupCamera = this.camera.clone()
 
@@ -183,6 +256,9 @@ class Monster3DProfile extends Component {
     this.frameId = window.requestAnimationFrame(this.animate)
     const delta = (time - this.prevTime) / 1000
 
+    if (this.animReady1) {
+      this.anim1.update(1000 * delta);
+    }
     this.mixer && this.mixer.update(delta)
     this.controls.update()
     this.renderScene()
@@ -196,20 +272,24 @@ class Monster3DProfile extends Component {
     this.camera.position.z = this.backupCamera.position.z
     this.camera.rotation.set(this.backupCamera.rotation)
     this.camera.updateProjectionMatrix()
+
     // dark light
     this.light.color.setHex(0x0f0f0f)
     this.pointLight.color.setHex(0x000000)
+
     // disable controls
     this.controls.enabled = false
   }
 
   clearMonster = () => {
     const { lightIntensity } = this.props
+
     // white light
     this.light.color.setHex(0xffffff)
     this.light.intensity = this.ambientalLightIntensity
     this.pointLight.color.setHex(0xffffff)
     this.pointLight.intensity = lightIntensity
+
     // enable controls
     this.controls.enabled = true
   }
@@ -228,6 +308,7 @@ class Monster3DProfile extends Component {
 
   applyPropertyUpdate = () => {
     const { autoRotate, autoRotateSpeed, action } = this.props
+
     // controls
     this.controls.autoRotate = autoRotate
     this.controls.autoRotateSpeed = autoRotateSpeed
