@@ -24,10 +24,9 @@ import { Monster3DProfile, ActionType } from 'react-monstereos-profile'
 
 const Monster = () =>
     <Monster3DProfile
-        typeId="devil"
-        path={monster3D}
+        typeId = 0        
         action={ActionType.IDLE}
-        position={{ y: -50 }}
+        decor="ice"
         size={{ height: "600px" }}
         background={{ alpha: 1 }}
         zoom={false}
@@ -37,12 +36,10 @@ const Monster = () =>
 ### Component properties
 | Name             | Type     | Default                              | Description                                                                                        |
 | ---------------- | -------- | ------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| typeId           | `string` |                                      | Monster ID.                                                                                        |
-| path             | `string` |                                      | Path to .gltf file (monster 3D model).                                                             |
+| typeId           | `string` | 0                               | Monster type id               |
+| decor            | `string` | `neutral`                            | Name of the type of monster to apply, examples: "metal", "neutral", "fire".                        |
+| isDead            | `boolean` | `false`                            | Applied is the monster is dead                        | 
 | action           | `string` | `Idle`                               | Monster state (animation name). Valid values are: Idle, Attack, HitReact, Sleeping, Feeding, Dead. |
-| position         | `object` | `{ x: 0, y: 0, z: 0 }`               | Initial monster's position.                                                                        |
-| rotation         | `object` | `{ x: 0, y: 0, z: 0 }`               | Initial monster's rotation. Values must be in radians.                                             |
-| cameraPosition   | `object` | `{ x: 0, y: 0, z: 0 }`               | Initial cameras's position.                                                                        |
 | autoRotate       | `bool`   | `false`                              | Enables autorotation.                                                                              |
 | autoRotateSpeed  | `number` | `-10`                                | If autorotation is enabled, defines its speed.                                                     |
 | exposure         | `number` | `1`                                  | Exposure level of tone mapping.                                                                    |
@@ -62,3 +59,14 @@ const Monster = () =>
 3. `npm install`.
 4. `npm start`.
 5. Demo running at `http://localhost:3000/`. 
+
+## Generating PNG files
+
+1) Change the property to `true` into the file `demo/src/utils/env.js`
+2) Change execution permissions on `snaps.sh` file with: `chmod u+x snaps.sh`
+3) Navigate to snapshots folder `cd snapshots/` and type `npm install`
+4) Go back to the main directory `cd ../`
+5) Run the script `./snaps.sh`
+6) Wait...
+7) This command will generate a images folder inside snapshots directory containing the png files of all monsters.
+8) Do not forget to change the property on the file `demo/src/utils/env.js` to `false`

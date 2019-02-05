@@ -1,6 +1,6 @@
 {
   "name": "react-monstereos-profile",
-  "version": "0.2.3",
+  "version": "0.3.7",
   "description": "react-monstereos-profile React component",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -20,7 +20,8 @@
     "start": "nwb serve-react-demo",
     "test": "nwb test-react",
     "test:coverage": "nwb test-react --coverage",
-    "test:watch": "nwb test-react --server"
+    "test:watch": "nwb test-react --server",
+    "snaps": "node ./snapshots/bin/www"
   },
   "dependencies": {
     "react-jss": "^8.6.1"
