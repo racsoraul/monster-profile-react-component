@@ -1,5 +1,7 @@
 # react-monstereos-profile
 
+Dependency of [MonsterEOS](https://github.com/MonsterEOS/monstereos)
+
 ## How to install
 Execute:
 ```
